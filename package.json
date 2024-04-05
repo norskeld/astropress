@@ -1,0 +1,90 @@
+{
+  "name": "@nrsk/astropress",
+  "version": "1.0.0",
+  "description": "Astro integration for images and SVG compression.",
+  "sideEffects": false,
+  "type": "module",
+  "main": "./index.cjs",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "require": "./index.cjs"
+    }
+  },
+  "files": [
+    "CHANGELOG.md",
+    "*.d.ts",
+    "*.cjs*",
+    "*.js*"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "fmt:lint": "eslint --fix --ext .js,.ts .",
+    "fmt:prettier": "prettier --write \"**/*.{js,ts,json}\"",
+    "postversion": "tsx ../.scripts/release.ts restore",
+    "prebuild": "rimraf dist",
+    "prepare": "husky",
+    "prerelease": "tsx .scripts/release.ts prepare",
+    "release": "npx semantic-release",
+    "release:dry": "npx semantic-release --dry-run",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/norskeld/astropress.git"
+  },
+  "keywords": [
+    "astro",
+    "compression",
+    "sharp",
+    "svgo"
+  ],
+  "author": {
+    "name": "Vladislav Mamon",
+    "email": "hello@vm.codes"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/norskeld/astropress/issues"
+  },
+  "homepage": "https://github.com/norskeld/astropress#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^19.2.1",
+    "@nrsk/config-conventional": "^1.0.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/is-ci": "^3.0.4",
+    "@typescript-eslint/eslint-plugin": "^7.3.1",
+    "@typescript-eslint/parser": "^7.3.1",
+    "@vitest/coverage-istanbul": "^1.4.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.11",
+    "is-ci": "^3.0.1",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
+    "semantic-release": "^23.0.5",
+    "tsup": "^8.0.2",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.2",
+    "vitest": "^1.4.0"
+  },
+  "commitlint": {
+    "extends": [
+      "@nrsk/config-conventional"
+    ]
+  },
+  "lint-staged": {
+    "*.{js,ts,json}": [
+      "prettier --write"
+    ],
+    "*.{js,ts}": [
+      "eslint"
+    ]
+  }
+}
