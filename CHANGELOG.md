@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/norskeld/astropress/compare/v1.0.0...v1.0.1) (2024-04-05)
+
+
+### Bug Fixes
+
+* do not overwrite svgs when diff is negative ([d6ae50a](https://github.com/norskeld/astropress/commit/d6ae50a00054bd48335544c74457f6d3b989dbd3))
+
 # 1.0.0 (2024-04-05)
 
 
