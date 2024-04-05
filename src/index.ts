@@ -73,9 +73,11 @@ function formatBytes(bytes: number): string {
 
 function createMessage(path: string, diff: number): string {
   const formatted = formatBytes(Math.abs(diff))
+
+  const message = diff < 0 ? 'Skipped' : 'Compressed'
   const savings = diff < 0 ? kleur.red(`+${formatted}`) : kleur.green(`-${formatted}`)
 
-  return `${kleur.green('✓')} Compressed: ${path} (${savings})`
+  return `${kleur.green('✓')} ${message}: ${path} (${savings})`
 }
 
 export function compress(): AstroIntegration {
@@ -107,13 +109,14 @@ export function compress(): AstroIntegration {
           const contents = await readFile(absolute, 'utf-8')
           const output = svgo.optimize(contents, SVGO_CONFIG)
 
-          await writeFile(absolute, output.data, 'utf-8')
-
-          // Log.
           const diff = output.data.length - contents.length
 
-          totalCount += 1
-          totalSavings += diff
+          if (diff > 0) {
+            await writeFile(absolute, output.data, 'utf-8')
+
+            totalCount += 1
+            totalSavings += diff
+          }
 
           logger.info(createMessage(path.toString(), diff))
         }
