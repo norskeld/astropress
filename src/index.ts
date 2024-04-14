@@ -1,167 +1,59 @@
-import { readFile, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
-
 import type { AstroIntegration } from 'astro'
-import fg from 'fast-glob'
-import kleur from 'kleur'
-import sharp from 'sharp'
-import svgo from 'svgo'
+import k from 'kleur'
 
-const SVGO_CONFIG = {
-  plugins: ['preset-default'],
-  multipass: true,
-  js2svg: {
-    indent: 0,
-    pretty: false
-  }
-} satisfies svgo.Config
+import { createImageTransformer, type ImageTransformerOptions } from './transformers/image'
+import { createSvgTransformer, type SvgTransformerOptions } from './transformers/svg'
+import { report } from './utils'
+import type { Result } from './types'
 
-const SHARP_CONFIG = {
-  avif: {
-    chromaSubsampling: '4:4:4',
-    effort: 9.0
-  },
-  gif: {
-    effort: 10.0
-  },
-  jpeg: {
-    chromaSubsampling: '4:4:4',
-    mozjpeg: true,
-    trellisQuantisation: true,
-    overshootDeringing: true,
-    optimiseScans: true
-  },
-  png: {
-    compressionLevel: 9.0,
-    palette: true
-  },
-  raw: {},
-  tiff: {
-    compression: 'lzw'
-  },
-  webp: {
-    effort: 6.0
-  }
-} satisfies {
-  avif: sharp.AvifOptions
-  gif: sharp.GifOptions
-  jpeg: sharp.JpegOptions
-  png: sharp.PngOptions
-  raw: sharp.RawOptions
-  tiff: sharp.TiffOptions
-  webp: sharp.WebpOptions
+export type { SharpOptions, ImageTransformerOptions } from './transformers/image'
+export type { SvgoOptions, SvgTransformerOptions } from './transformers/svg'
+export type * from './types'
+
+/** Integration options. */
+export interface AstroPressOptions {
+  /** Image transformer options. */
+  image?: ImageTransformerOptions
+  /** SVG transformer options. */
+  svg?: SvgTransformerOptions
 }
 
-type SharpFormat = keyof typeof SHARP_CONFIG
-
-function inflect([single, plural]: [single: string, plural: string], length: number) {
-  return length === 1 ? single : plural
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) {
-    return '0 Bytes'
-  }
-
-  const k = 1024
-  const index = Math.floor(Math.log(bytes) / Math.log(k))
-  const value = parseFloat((bytes / k ** index).toFixed(2))
-  const unit = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][index]
-
-  return `${value} ${unit}`
-}
-
-function createMessage(path: string, diff: number): string {
-  const formatted = formatBytes(Math.abs(diff))
-
-  const message = diff < 0 ? 'Skipped' : 'Compressed'
-  const savings = diff < 0 ? kleur.red(`+${formatted}`) : kleur.green(`-${formatted}`)
-
-  return `${kleur.green('✓')} ${message}: ${path} (${savings})`
-}
-
-export function compress(): AstroIntegration {
+export function astropress(options: AstroPressOptions = {}): AstroIntegration {
   return {
     name: 'astrocompress',
     hooks: {
-      'astro:build:done': async ({ dir, logger }) => {
-        const cwd = dir.pathname
-
-        const globOptions = {
-          cwd,
-          dot: true,
-          absolute: false
-        }
-
-        let totalCount = 0
-        let totalSavings = 0
+      'astro:build:done': async (ctx) => {
+        const dir = ctx.dir.pathname
+        const logger = ctx.logger
 
         // Log heading.
-        console.log('\n' + kleur.bgGreen(kleur.black(' compressing images ')))
+        console.log('\n' + k.bgGreen(k.black(' compressing images ')))
 
-        // Create streams.
-        const svgStream = fg.stream('**/*.svg', globOptions)
-        const imgStream = fg.stream('**/*.{avif,gif,heif,jpg,jpeg,png,webp}', globOptions)
+        try {
+          const results = [] as Array<Result>
 
-        // Compress found svg files.
-        for await (const path of svgStream) {
-          const absolute = join(cwd, path.toString())
-          const contents = await readFile(absolute, 'utf-8')
-          const output = svgo.optimize(contents, SVGO_CONFIG)
+          // Create and apply transformers.
+          const transformers = [
+            createSvgTransformer({ dir, logger, ...options.svg }),
+            createImageTransformer({ dir, logger, ...options.image })
+          ]
 
-          const diff = output.data.length - contents.length
-
-          if (diff > 0) {
-            await writeFile(absolute, output.data, 'utf-8')
-
-            totalCount += 1
-            totalSavings += diff
+          for (const transformer of transformers) {
+            results.push(...(await transformer.transform()))
           }
 
-          logger.info(createMessage(path.toString(), diff))
-        }
+          // Log report.
+          logger.info('')
 
-        // Compress all other image files.
-        for await (const path of imgStream) {
-          const absolute = join(cwd, path.toString())
-          const image = sharp(absolute)
-
-          const { format } = await image.metadata()
-
-          if (format && format in SHARP_CONFIG) {
-            const selected = format as SharpFormat
-            const buffer = await image.toBuffer()
-
-            const output = sharp(buffer, {
-              failOn: 'none',
-              sequentialRead: true,
-              unlimited: true,
-              animated: format === 'gif' || format === 'webp'
-            })
-
-            // Overwrite.
-            const config = SHARP_CONFIG[selected]
-            const processed = await output[selected](config).toFile(absolute)
-
-            // Log.
-            const diff = buffer.byteLength - processed.size
-
-            totalCount += 1
-            totalSavings += diff
-
-            logger.info(createMessage(path.toString(), diff))
+          for (const line of report(results)) {
+            logger.info(line)
           }
+        } catch (err) {
+          logger.error(`Couldn't compress files: ${err}`)
         }
-
-        logger.info(
-          kleur.green(
-            `✓ Compressed a total of ${totalCount} ${inflect(['file', 'files'], totalCount)}` +
-              ` saving ${formatBytes(totalSavings)}.\n`
-          )
-        )
       }
     }
   }
 }
 
-export default compress
+export default astropress
