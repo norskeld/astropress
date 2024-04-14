@@ -1,21 +1,39 @@
 import type { AstroIntegration } from 'astro'
 import k from 'kleur'
 
-import { createImageTransformer, type ImageTransformerOptions } from './transformers/image'
-import { createSvgTransformer, type SvgTransformerOptions } from './transformers/svg'
-import { report } from './utils'
+import { createImageTransformer, type SharpOptions } from './transformers/image'
+import { createSvgTransformer, type SvgoOptions } from './transformers/svg'
 import type { Result } from './types'
+import { report } from './utils'
 
-export type { SharpOptions, ImageTransformerOptions } from './transformers/image'
-export type { SvgoOptions, SvgTransformerOptions } from './transformers/svg'
+export type { SharpOptions } from './transformers/image'
+export type { SvgoOptions } from './transformers/svg'
 export type * from './types'
+
+export interface ImageOptions {
+  /** Source directory to look for images in. Defaults to Astro `outDir`. */
+  dir?: string
+  /** Output directory to write images to. Defaults to `dir`. */
+  out?: string
+  /** Sharp options. */
+  options?: SharpOptions
+}
+
+export interface SvgOptions {
+  /** Source directory to look for SVG files in. Defaults to Astro `outDir`. */
+  dir?: string
+  /** Output directory to write SVG files to. Defaults to `dir`. */
+  out?: string
+  /** Svgo options. */
+  options?: SvgoOptions
+}
 
 /** Integration options. */
 export interface AstroPressOptions {
-  /** Image transformer options. */
-  image?: ImageTransformerOptions
-  /** SVG transformer options. */
-  svg?: SvgTransformerOptions
+  /** Image options. */
+  image?: ImageOptions
+  /** SVG options. */
+  svg?: SvgOptions
 }
 
 export function astropress(options: AstroPressOptions = {}): AstroIntegration {

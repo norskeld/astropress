@@ -1,3 +1,4 @@
+import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import type { AstroIntegrationLogger } from 'astro'
@@ -6,7 +7,6 @@ import sharp from 'sharp'
 
 import type { Transformer, Result } from '@/types'
 import { defaults, message } from '@/utils'
-import { writeFile } from 'node:fs/promises'
 
 /** Image transformer options. */
 export interface ImageTransformerOptions {
