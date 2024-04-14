@@ -13,6 +13,63 @@
 
 Astro integration for images and SVG compression.
 
+## Features
+
+Basic image and SVG compression integration for [Astro 4](https://astro.build). Uses:
+
+- [x] [sharp](https://github.com/lovell/sharp)
+- [x] [svgo](https://github.com/svg/svgo)
+
+## Installation
+
+First, install the `@nrsk/astropress` package using your package manager.
+
+```bash
+npm install @nrsk/astropress
+```
+
+Then, apply the integration to your [astro.config.\*](https://docs.astro.build/en/reference/configuration-reference/#integrations) file using the `integrations` property:
+
+```typescript
+import { defineConfig } from 'astro/config'
+import astropress from '@nrsk/astropress'
+
+export default defineConfig({
+  integrations: [astropress()]
+})
+```
+
+> [!NOTE]\
+> Place astropress **after** all other integrations.
+
+## Configuration
+
+**sharp** and **svgo** are given reasonable defaults, but can be easily configured via the `image.options` and `svg.options` properties, which accept **sharp** and **svgo** options respectively.
+
+Besides that you can specify `dir` and `out` options to configure the input and output directories.
+
+```typescript
+import { defineConfig } from 'astro/config'
+import astropress from '@nrsk/astropress'
+
+export default defineConfig({
+  integrations: [
+    astropress({
+      image: {
+        dir: '/path/to/input/dir',
+        out: '/path/to/output/dir',
+        options // sharp options.
+      },
+      svg: {
+        dir: '/path/to/input/dir',
+        out: '/path/to/output/dir',
+        options // svgo options.
+      }
+    })
+  ]
+})
+```
+
 ## License
 
 [MIT](LICENSE).
