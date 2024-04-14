@@ -1,6 +1,6 @@
-import { access, copyFile } from 'fs/promises'
-import { constants } from 'fs'
-import { resolve } from 'path'
+import { access, copyFile } from 'node:fs/promises'
+import { constants } from 'node:fs'
+import { resolve } from 'node:path'
 
 interface Success {
   kind: 'success'
