@@ -1,6 +1,6 @@
 {
   "name": "@nrsk/astropress",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Astro integration for images and SVG compression.",
   "sideEffects": false,
   "type": "module",

@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/norskeld/astropress/compare/v1.0.1...v1.1.0) (2024-04-14)
+
+
+### Features
+
+* rewrite integration ([a5f5ad7](https://github.com/norskeld/astropress/commit/a5f5ad784e114f5763d5c87ef15398718f4289ab))
+
 ## [1.0.1](https://github.com/norskeld/astropress/compare/v1.0.0...v1.0.1) (2024-04-05)
 
 
